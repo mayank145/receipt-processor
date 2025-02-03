@@ -10,13 +10,21 @@ Docker
 Running the Application
 1. Clone the Repository
     git clone https://github.com/mayank145/receipt-processor.git
+   
     cd receipt-processor
-2. Build the Application
+   
+3. Build the Application
+   
      mvn clean package
-3. Run the Application Locally
+   
+5. Run the Application Locally
+   
     mvn spring-boot:run
+   
     The server will start on http://localhost:8080.
 
-4. Run with Docker
+7. Run with Docker
+   
     docker build -t receipt-processor .
+   
     docker run -p 8080:8080 receipt-processor
