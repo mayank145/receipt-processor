@@ -6,32 +6,31 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-
 import com.receiptprocessor.model.Item;
 import com.receiptprocessor.model.Receipt;
 
 @Service
 public class PointsService {
 
-    // Predefined DateTimeFormatter for efficient parsing of time
+    // DateTimeFormatter for consistent time parsing
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     /**
-     * Calculates the total reward points for a given receipt based on various criteria.
+     * Calculates reward points for a given receipt based on multiple conditions.
      *
-     * @param receipt The receipt object containing purchase details.
-     * @return The total points awarded for the receipt.
+     * @param receipt The receipt containing purchase details.
+     * @return The total points awarded.
      * @throws IllegalArgumentException if the receipt is null.
      */
     public int calculatePoints(Receipt receipt) {
-        validateReceipt(receipt); // Ensure receipt is not null before processing
+        validateReceipt(receipt);
 
         int points = 0;
-        points += calculateRetailerPoints(receipt.getRetailer());
-        points += calculateTotalPoints(receipt.getTotal());
-        points += calculateItemPoints(receipt.getItems());
-        points += calculatePurchaseDayPoints(receipt.getPurchaseDate());
-        points += calculatePurchaseTimePoints(receipt.getPurchaseTime());
+        points += calculateRetailerPoints(receipt.getRetailer());  // Retailer name points
+        points += calculateTotalPoints(receipt.getTotal());        // Total amount points
+        points += calculateItemPoints(receipt.getItems());         // Item-based points
+        points += calculatePurchaseDayPoints(receipt.getPurchaseDate());  // Purchase day points
+        points += calculatePurchaseTimePoints(receipt.getPurchaseTime()); // Purchase time points
 
         return points;
     }
@@ -50,7 +49,7 @@ public class PointsService {
 
     /**
      * Calculates points based on the retailer's name.
-     * One point is awarded for each alphanumeric character in the retailer's name.
+     * - One point is awarded for each alphanumeric character in the retailer's name.
      *
      * @param retailer The retailer's name.
      * @return The number of points awarded.
@@ -61,7 +60,7 @@ public class PointsService {
     }
 
     /**
-     * Calculates points based on the total amount.
+     * Calculates points based on the total purchase amount.
      * - 50 points if the total is a round number (e.g., 10.00).
      * - 25 points if the total is a multiple of 0.25.
      *
@@ -76,21 +75,21 @@ public class PointsService {
             double totalAmount = Double.parseDouble(total);
 
             if (total.matches("\\d+\\.00")) {
-                points += 50; // Round number bonus
+                points += 50; // Bonus for round dollar amount
             }
             if (totalAmount % 0.25 == 0) {
-                points += 25; // Multiple of 0.25 bonus
+                points += 25; // Bonus for multiples of 0.25
             }
         } catch (NumberFormatException e) {
-            // Log invalid total but continue processing (avoid crashing)
+            return 0; // Invalid total format, no points awarded
         }
         return points;
     }
 
     /**
-     * Calculates points based on the purchased items.
+     * Calculates points based on the number and description of items.
      * - 5 points for every two items.
-     * - If an item's description length is a multiple of 3, its price is multiplied by 0.2, and the result is rounded up.
+     * - If an item's description length is a multiple of 3, its price is multiplied by 0.2, rounded up, and added as points.
      *
      * @param items The list of purchased items.
      * @return The number of points awarded.
@@ -108,10 +107,10 @@ public class PointsService {
             try {
                 double price = Double.parseDouble(item.getPrice());
                 if (desc.length() % 3 == 0) {
-                    points += (int) Math.ceil(price * 0.2); // Bonus for descriptions of length multiple of 3
+                    points += (int) Math.ceil(price * 0.2); // Extra bonus for description length multiple of 3
                 }
             } catch (NumberFormatException e) {
-                // Log invalid price but continue processing
+                return 0; // Invalid item price, no points awarded
             }
         }
         return points;
